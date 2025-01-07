@@ -1,0 +1,49 @@
+# Node.js modules
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Build directories
+dist/
+build/
+tmp/
+
+# Dependencies folder (If using Yarn)
+.yarn/
+
+# Editor directories and files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Operating System files
+Thumbs.db
+ehthumbs.db
+
+# Optional npm cache directory
+.npm
+
+# Test coverage directory
+coverage/
+
+# Parcel-bundler cache
+.cache/
+
+# Webpack output
+*.webpack/
+
+# TypeScript build output
+*.tsbuildinfo
