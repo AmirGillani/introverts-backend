@@ -4,15 +4,23 @@ const fs = require("fs");
 
 const HttpsErrors = require("./middleware/utilities/http-errors");
 
-const storeRouter = require("./routes/storeRoutes");
+const authRouter = require("./routes/authRoutes");
 
-const startServer = require("./server/createServer")
+const userRouter = require("./routes/userRoutes");
+
+const startServer = require("./server/createServer");
+
+const dotenv = require("dotenv");
+
+dotenv.config();
 
 const app = express();
 
-app.use(express.json())
+app.use(express.json());
 
-app.use("/store", storeRouter);
+app.use("/auth", authRouter);
+
+app.use("/users", userRouter);
 
 // THIS WILL BE CALLED WHEN NO RESPONCE IS ACHIVED FROM ROUTE
 
