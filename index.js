@@ -2,11 +2,15 @@ const express = require("express");
 
 const fs = require("fs");
 
+const bodyParser = require("body-parser");
+
 const HttpsErrors = require("./middleware/utilities/http-errors");
 
 const authRouter = require("./routes/authRoutes");
 
 const userRouter = require("./routes/userRoutes");
+
+const postRouter = require("./routes/postRoutes");
 
 const startServer = require("./server/createServer");
 
@@ -18,9 +22,13 @@ const app = express();
 
 app.use(express.json());
 
+app.use(bodyParser.urlencoded({extended:true}));
+
 app.use("/auth", authRouter);
 
 app.use("/users", userRouter);
+
+app.use("/posts",postRouter);
 
 // THIS WILL BE CALLED WHEN NO RESPONCE IS ACHIVED FROM ROUTE
 
