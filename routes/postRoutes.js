@@ -43,7 +43,7 @@ router.get(
   router.put(
     "/timeline",
     check,
-    postController.timeLine
+    postController.timeline
   );
 
 
