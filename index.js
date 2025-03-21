@@ -4,6 +4,8 @@ const fs = require("fs");
 
 const bodyParser = require("body-parser");
 
+const cors = require("cors");
+
 const HttpsErrors = require("./middleware/utilities/http-errors");
 
 const authRouter = require("./routes/authRoutes");
@@ -19,6 +21,8 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const app = express();
+
+app.use(cors())
 
 app.use(express.json());
 
