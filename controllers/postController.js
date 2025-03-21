@@ -6,6 +6,8 @@ const { validationResult } = require("express-validator");
 
 const POSTMODEL = require("../model/postModel");
 
+const USERMODEL = require("../model/userModel");
+
 module.exports.createPost = catchAsyncError(async (req, res, next) => {
   const { userID, likes, desc } = req.body;
 
@@ -108,4 +110,47 @@ module.exports.likePost = catchAsyncError(async (req, res, next) => {
 
     return res.status(200).json({ message: "Post unliked successfully!!" });
   }
+});
+
+module.exports.timeline = catchAsyncError(async (req, res, next) => {
+  const userID = req.user._id;
+
+  const posts = await POSTMODEL.find({ userID: userID });
+
+  const followingPosts = await USERMODEL.aggregate([
+    // STEP#1 FIND ONE USER
+    {
+      $match: { _id: userID },
+    },
+    // STEP#2 FIND POSTS OF USERS WHOM WE ARE FOLLOWING
+
+    // lookup will see two columns following and userID and see same values
+    {
+      $lookup: {
+        from: "Post",
+        localField: "following",
+        foreignField: "userID",
+        as: "followingPosts",
+      },
+    },
+
+    // STEP#3 This step modifies the output of the aggregation to include only the 
+
+    // followingPosts field and exclude the default _id field.
+    
+    {
+      $project: {
+        followingPosts: 1,
+        _id: 0,
+      },
+    },
+  ]);
+
+  res
+    .status(200)
+    .json(
+      posts
+        .concat(...followingPosts[0].followingPosts)
+        .sort((a, b) => b.createdAt - a.createdAt)
+    );
 });

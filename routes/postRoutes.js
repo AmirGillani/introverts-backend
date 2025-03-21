@@ -40,6 +40,12 @@ router.get(
     postController.likePost
   );
 
+  router.put(
+    "/timeline",
+    check,
+    postController.timeLine
+  );
+
 
 
 module.exports = router;
