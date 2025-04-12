@@ -8,7 +8,15 @@ const check = require("../middleware/config/check-auth");
 
 const router = express.Router();
 
+router.get("/", userController.allUsers);
+
 router.get("/:id", userController.singleUser);
+
+router.delete("/deleteUser/:id",check, userController.singleUserDelete);
+
+router.put("/follow/:id",check, userController.followUser);
+
+router.put("/unfollow/:id",check, userController.unfollowUser);
 
 router.put(
   "/updateUser/:id",check,
@@ -18,11 +26,5 @@ router.put(
   ]),
   userController.singleUserUpdate
 );
-
-router.delete("/deleteUser/:id",check, userController.singleUserDelete);
-
-router.put("/follow/:id",check, userController.followUser);
-
-router.put("/unfollow/:id",check, userController.unfollowUser);
 
 module.exports = router;

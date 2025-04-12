@@ -16,7 +16,7 @@ router.post(
 );
 
 router.get(
-    "/:id",
+    "/singlePost/:id",
     postController.singlePost
   );
 
@@ -40,7 +40,7 @@ router.get(
     postController.likePost
   );
 
-  router.put(
+  router.get(
     "/timeline",
     check,
     postController.timeline

@@ -9,14 +9,14 @@ const POSTMODEL = require("../model/postModel");
 const USERMODEL = require("../model/userModel");
 
 module.exports.createPost = catchAsyncError(async (req, res, next) => {
-  const { userID, likes, desc } = req.body;
+  const { userID, desc,name } = req.body;
 
   if (req.file && req.file.path) {
     const post = await POSTMODEL.create({
       userID,
-      likes,
       desc,
       image: req.file.path,
+      name
     });
 
     if (post) return res.status(201).json({ message: "Post created", post });
@@ -113,6 +113,7 @@ module.exports.likePost = catchAsyncError(async (req, res, next) => {
 });
 
 module.exports.timeline = catchAsyncError(async (req, res, next) => {
+
   const userID = req.user._id;
 
   const posts = await POSTMODEL.find({ userID: userID });
@@ -137,7 +138,7 @@ module.exports.timeline = catchAsyncError(async (req, res, next) => {
     // STEP#3 This step modifies the output of the aggregation to include only the 
 
     // followingPosts field and exclude the default _id field.
-    
+
     {
       $project: {
         followingPosts: 1,
@@ -146,11 +147,16 @@ module.exports.timeline = catchAsyncError(async (req, res, next) => {
     },
   ]);
 
-  res
-    .status(200)
-    .json(
-      posts
-        .concat(...followingPosts[0].followingPosts)
-        .sort((a, b) => b.createdAt - a.createdAt)
-    );
+  // Extract following posts from the aggregation result
+  const followingPostsArray = followingPosts[0] ? followingPosts[0].followingPosts : [];
+
+  // If followingPosts is empty, just return the current user's posts
+  if (followingPostsArray.length === 0) {
+    return res.status(200).json(posts.sort((a, b) => b.createdAt - a.createdAt));
+  }
+
+  // Otherwise, merge the current user's posts with the following users' posts
+  const allPosts = posts.concat(...followingPostsArray).sort((a, b) => b.createdAt - a.createdAt);
+
+  return res.status(200).json(allPosts);
 });

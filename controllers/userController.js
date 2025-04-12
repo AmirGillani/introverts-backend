@@ -8,6 +8,13 @@ const userModel = require("../model/userModel");
 
 const postModel = require("../model/postModel");
 
+module.exports.allUsers = catchAsyncError(async (req, res, next) => {
+
+  const users = await userModel.find({}).select("-password");
+
+  res.status(200).json({ users });
+});
+
 module.exports.singleUser = catchAsyncError(async (req, res, next) => {
   const id = req.params.id;
 
@@ -29,26 +36,23 @@ module.exports.singleUserUpdate = catchAsyncError(async (req, res, next) => {
     return res.status(404).json({ message: "User not found" });
   }
 
-  // Update images if they are sent 
+  // Check if files are uploaded
+  const { profilePic, coverPic } = req.files || {}; // Handle missing files safely
 
-  const { profilePic, coverPic } = req.files;
-
-  let profilePicPath = profilePic ? profilePic[0].path : null;
-  let coverPicPath = coverPic ? coverPic[0].path : null;
-
-  if (profilePicPath) {
-    user.profilePic = profilePicPath; 
+  // Update the profilePic and coverPic only if new files are provided
+  if (profilePic) {
+    user.profilePic = profilePic[0].path; // Update the profilePic if the new file is uploaded
   }
 
-  if (coverPicPath) {
-    user.coverPic = coverPicPath; 
+  if (coverPic) {
+    user.coverPic = coverPic[0].path; // Update the coverPic if the new file is uploaded
   }
 
+  // Update other fields from the request body (except images)
+  Object.assign(user, req.body);
+
+  // Save the updated user
   await user.save();
-
-  // Update other fileds
-
-  await userModel.findByIdAndUpdate(id,req.body)
 
   res.status(200).json({ user });
 });
@@ -103,43 +107,45 @@ module.exports.singleUserDelete = catchAsyncError(async (req, res, next) => {
 });
 
 module.exports.followUser = catchAsyncError(async (req, res, next) => {
-  // Suppose zeeshan follows syeda
+  const syedaID = req.params.id; // The user being followed
+  const currentUserID = req.user._id.toString(); // The current logged-in user (Zeeshan)
 
-  const syedaID = req.params.id;
-
-  const { currentUserID: zeeID } = req.body;
-
-  if (syedaID === zeeID)
-    return res.status(200).json({ message: "You can not follow yourself!!" });
-
-  // Find users
+  if (syedaID === currentUserID) {
+    return res.status(400).json({ message: "You cannot follow yourself!" });
+  }
 
   const Syeda = await userModel.findById(syedaID);
+  const Zeeshan = await userModel.findById(currentUserID);
 
-  const Zeeshan = await userModel.findById(zeeID);
+  if (!Syeda || !Zeeshan) {
+    return res.status(404).json({ message: "User not found" });
+  }
 
-  // Check if you are already following her
-
-  if (Syeda.followers.includes(zeeID))
+  if (Syeda.followers.includes(currentUserID)) {
     return res
-      .status(200)
-      .json({ message: "You are already following this id!!" });
+      .status(400)
+      .json({ message: "You are already following this user!" });
+  }
 
-  // Push user in follwer and following arrays
+  // Update followers and following
+  await userModel.findByIdAndUpdate(syedaID, {
+    $push: { followers: currentUserID },
+  });
 
-  await userModel.findByIdAndUpdate(syedaID, { $push: { followers: zeeID } });
+  await userModel.findByIdAndUpdate(currentUserID, {
+    $push: { following: syedaID },
+  });
 
-  await userModel.findByIdAndUpdate(zeeID, { $push: { following: syedaID } });
-
-  res.status(200).json({ message: "User followed successfully !!" });
+  res.status(200).json({ message: "User followed successfully!" });
 });
+
 
 module.exports.unfollowUser = catchAsyncError(async (req, res, next) => {
   // Suppose zeeshan unfollows syeda
 
   const syedaID = req.params.id;
 
-  const { currentUserID: zeeID } = req.body;
+  const zeeID  = req.user._id;
 
   if (syedaID === zeeID)
     return res.status(200).json({ message: "You can not unfollow yourself!!" });

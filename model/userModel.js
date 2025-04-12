@@ -18,10 +18,12 @@ const userSchema = new Schema(
     relationship: { type: String },
     followers: {
       type: [{ type: Schema.Types.ObjectId, ref: "User" }],
+      required:true,
       default: [],
     },
     following: {
       type: [{ type: Schema.Types.ObjectId, ref: "User" }],
+      required:true,
       default: [],
     },
   },

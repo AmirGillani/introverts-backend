@@ -26,23 +26,18 @@ module.exports.signup = catchAsyncError(async (req, res, next) => {
   const hashed = await bcrypt.hash(password, saltRounds);
 
   if (req.file && req.file.path) {
-    
     const user = await USERMODEL.create({
       username,
       password: hashed,
       firstName,
       lastName,
       profilePic: req.file.path,
-      isAdmin
+      isAdmin,
     });
 
-    const token = jwt.sign(
-      {...user},
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "1h",
-      }
-    );
+    const token = jwt.sign({ ...user }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     if (user) res.status(201).json({ message: "User created", user, token });
   } else {
@@ -51,16 +46,12 @@ module.exports.signup = catchAsyncError(async (req, res, next) => {
       password: hashed,
       firstName,
       lastName,
-      isAdmin
+      isAdmin,
     });
 
-    const token = jwt.sign(
-      {...user},
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "1h",
-      }
-    );
+    const token = jwt.sign({ ...user }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     if (user) res.status(201).json({ message: "User created", user, token });
   }
@@ -70,26 +61,32 @@ module.exports.login = catchAsyncError(async (req, res, next) => {
   // Proceed to create the user
   const { username, password } = req.body;
 
+  const errors = validationResult(req);
+
+  // Check if validation failed
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
   const user = await USERMODEL.findOne({ username: username });
 
   if (!user) return res.status(404).json({ message: "No user found!!!" });
 
   const valid = await bcrypt.compare(password, user.password);
 
-  const token = jwt.sign(
-    {...user},
-    process.env.JWT_SECRET,
-    {
-      expiresIn: "1h",
-    }
-  );
+  if (!valid)
+    return res
+      .status(400)
+      .json({ errors: [{ msg: "Password is incorrect", path: "password" }] });
+
+  const token = jwt.sign({ ...user }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
 
   // Send response with token and user data (excluding password)
   const userWithoutPassword = { ...user.toObject(), password: "" };
 
-  valid
-    ? res
-        .status(200)
-        .json({ message: "Login User", user: userWithoutPassword, token })
-    : res.status(401).json({ message: "Password is incorrect" });
+  res
+    .status(200)
+    .json({ message: "Login User", user: userWithoutPassword, token });
 });
