@@ -46,6 +46,24 @@ router.get(
     postController.timeline
   );
 
+  router.put(
+    "/sendComment/:id",
+    check,
+    postController.createComment
+  );
+
+  router.get(
+    "/allComments/:id",
+    check,
+    postController.allComments
+  );
+
+  router.put(
+    "/sendReply/:id",
+    check,
+    postController.createReply
+  );
+
 
 
 module.exports = router;

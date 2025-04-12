@@ -8,7 +8,7 @@ const userSchema = new Schema(
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     isAdmin: { type: Boolean, default: false },
-    profilePic: { type: String },
+    profilePic: { type: String, required:true },
     coverPic: {
       type: String,
     },

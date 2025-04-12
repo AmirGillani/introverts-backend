@@ -8,15 +8,17 @@ const POSTMODEL = require("../model/postModel");
 
 const USERMODEL = require("../model/userModel");
 
+const mongoose = require("mongoose");
+
 module.exports.createPost = catchAsyncError(async (req, res, next) => {
-  const { userID, desc,name } = req.body;
+  const { userID, desc, name } = req.body;
 
   if (req.file && req.file.path) {
     const post = await POSTMODEL.create({
       userID,
       desc,
       image: req.file.path,
-      name
+      name,
     });
 
     if (post) return res.status(201).json({ message: "Post created", post });
@@ -112,33 +114,25 @@ module.exports.likePost = catchAsyncError(async (req, res, next) => {
   }
 });
 
-module.exports.timeline = catchAsyncError(async (req, res, next) => {
 
+
+module.exports.timeline = catchAsyncError(async (req, res, next) => {
   const userID = req.user._id;
 
   const posts = await POSTMODEL.find({ userID: userID });
 
   const followingPosts = await USERMODEL.aggregate([
-    // STEP#1 FIND ONE USER
     {
-      $match: { _id: userID },
+      $match: { _id: new mongoose.Types.ObjectId(userID) },
     },
-    // STEP#2 FIND POSTS OF USERS WHOM WE ARE FOLLOWING
-
-    // lookup will see two columns following and userID and see same values
     {
       $lookup: {
-        from: "Post",
+        from: "posts", // must match the actual collection name
         localField: "following",
         foreignField: "userID",
         as: "followingPosts",
       },
     },
-
-    // STEP#3 This step modifies the output of the aggregation to include only the 
-
-    // followingPosts field and exclude the default _id field.
-
     {
       $project: {
         followingPosts: 1,
@@ -147,16 +141,87 @@ module.exports.timeline = catchAsyncError(async (req, res, next) => {
     },
   ]);
 
-  // Extract following posts from the aggregation result
-  const followingPostsArray = followingPosts[0] ? followingPosts[0].followingPosts : [];
+  console.log(followingPosts);
 
-  // If followingPosts is empty, just return the current user's posts
-  if (followingPostsArray.length === 0) {
-    return res.status(200).json(posts.sort((a, b) => b.createdAt - a.createdAt));
-  }
+  console.log("reached");
 
-  // Otherwise, merge the current user's posts with the following users' posts
-  const allPosts = posts.concat(...followingPostsArray).sort((a, b) => b.createdAt - a.createdAt);
+  const followingPostsArray = followingPosts[0]?.followingPosts || [];
+
+  const allPosts = [...posts, ...followingPostsArray].sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  );
 
   return res.status(200).json(allPosts);
 });
+
+
+module.exports.createComment = catchAsyncError(async (req, res, next) => {
+  const postId = req.params.id;
+
+  const user = req.user;
+
+  const { comment } = req.body;
+
+  if (!comment || comment.trim() === "") {
+    return res.status(400).json({ message: "Comment cannot be empty." });
+  }
+
+  await POSTMODEL.findOneAndUpdate(
+    { _id: postId },
+    {
+      $push: {
+        comments: {
+          imgUrl: user.profilePic,
+          name: `${user.firstName} ${user.lastName}`,
+          comment: comment,
+        },
+      },
+    },
+    { new: true }
+  );
+
+  const updatedPost = await POSTMODEL.findById(postId);
+
+  res.status(201).json({ message: "Comment is posted !!", post: updatedPost });
+});
+
+module.exports.allComments = catchAsyncError(async (req, res, next) => {
+  const postId = req.params.id;
+
+  const post = await POSTMODEL.findOne({ _id: postId });
+
+  // Sort comments by creation time (ascending)
+
+  const sortedComments = post.comments.sort((a, b) => {
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+
+  res.status(200).json({ comments: sortedComments });
+});
+
+module.exports.createReply = catchAsyncError(async (req, res, next) => {
+
+  const postId = req.params.id;
+
+  const user = req.user;
+
+  const { text, commentID } = req.body;
+
+  if (!text || text.trim() === "") {
+    return res.status(400).json({ message: "Reply cannot be empty." });
+  }
+
+  const post = await POSTMODEL.findOne({ _id: postId });
+
+ const comment = post.comments.find((comment)=>comment._id.toString() === commentID);
+
+ comment.reply.push({img:user.profilePic,name:`${user.firstName} ${user.lastName}`,text:text});
+
+ await post.save();
+
+  res.status(201).json({ message: "Reply is posted !!" });
+});
+
+
+
+
