@@ -211,7 +211,7 @@ module.exports.createComment = catchAsyncError(async (req, res, next) => {
 
 module.exports.editComment = catchAsyncError(async (req, res, next) => {
   const postId = req.params.id;
-  const { comment, commentID } = req.body;
+  const { comment, commentID,userID } = req.body;
 
   if (!comment || comment.trim() === "") {
     return res.status(400).json({ message: "Comment cannot be empty." });
@@ -231,7 +231,7 @@ module.exports.editComment = catchAsyncError(async (req, res, next) => {
 
   foundComment.comment = comment;
 
-  foundComment.userID = req.user._id;
+  foundComment.userID = userID;
 
   await post.save();
 
