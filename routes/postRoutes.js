@@ -20,6 +20,11 @@ router.get(
     postController.singlePost
   );
 
+  router.get(
+    "/userPosts/:id",
+    postController.singleUserPosts
+  );
+
 
   router.put(
     "/:id",

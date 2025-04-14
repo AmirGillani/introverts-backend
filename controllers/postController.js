@@ -4,7 +4,7 @@ const HttpsErrors = require("../middleware/utilities/http-errors");
 
 const { validationResult } = require("express-validator");
 
-const { createConnection, sendNotification } = require("../middleware/config/socket-io");
+const { sendNotification } = require("../middleware/config/socket-io");
 
 const POSTMODEL = require("../model/postModel");
 
@@ -49,6 +49,19 @@ module.exports.singlePost = catchAsyncError(async (req, res, next) => {
   if (!post) return res.status(404).json({ message: "Post not found" });
 
   res.status(200).json({ post: post });
+});
+
+module.exports.singleUserPosts = catchAsyncError(async (req, res, next) => {
+
+  const id = req.params.id;
+
+  const person = await USERMODEL.findById(id);
+
+  if (!person) return res.status(404).json({ message: "Person not found" });
+
+  const userPosts = await POSTMODEL.find({userID:id});
+
+  res.status(200).json({ userPosts: userPosts,person:person });
 });
 
 module.exports.updatePost = catchAsyncError(async (req, res, next) => {
