@@ -223,13 +223,15 @@ module.exports.editComment = catchAsyncError(async (req, res, next) => {
     return res.status(404).json({ message: "Post not found." });
   }
 
-  const foundComment = post.comments.id(commentID); // use mongoose subdoc lookup
+  const foundComment = post.comments.find(comment=>comment._id === commentID); // use mongoose subdoc lookup
 
   if (!foundComment) {
     return res.status(404).json({ message: "Comment not found." });
   }
 
   foundComment.comment = comment;
+
+  foundComment.userID = req.user._id;
 
   await post.save();
 
