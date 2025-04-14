@@ -183,7 +183,7 @@ module.exports.createComment = catchAsyncError(async (req, res, next) => {
 
   const user = req.user;
 
-  const { comment } = req.body;
+  const { comment,userID } = req.body;
 
   if (!comment || comment.trim() === "") {
     return res.status(400).json({ message: "Comment cannot be empty." });
@@ -197,6 +197,7 @@ module.exports.createComment = catchAsyncError(async (req, res, next) => {
           imgUrl: user.profilePic,
           name: `${user.firstName} ${user.lastName}`,
           comment: comment,
+          userID:userID
         },
       },
     },

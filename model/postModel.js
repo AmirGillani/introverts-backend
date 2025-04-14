@@ -11,6 +11,7 @@ const commentSchema = new Schema({
   imgUrl: { type: String, trim: true },
   name: { type: String, trim: true, required: true },
   comment: { type: String, trim: true, required: true },
+  userID:{type: Schema.Types.ObjectId, ref: "User", required: true},
   reply: { type: [replySchema], default: [] }
 }, { timestamps: true });
 
