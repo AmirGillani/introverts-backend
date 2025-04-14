@@ -34,6 +34,13 @@ app.use("/users", userRouter);
 
 app.use("/posts",postRouter);
 
+app.use(express.static(path.join(__dirname, 'client/dist')));
+
+// Always return index.html for any unknown paths (React Router handles them)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/dist', 'index.html'));
+});
+
 // THIS WILL BE CALLED WHEN NO RESPONCE IS ACHIVED FROM ROUTE
 
 app.use(() => {
