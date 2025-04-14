@@ -19,23 +19,24 @@ module.exports.createPost = catchAsyncError(async (req, res, next) => {
       desc,
       image: req.file.path,
       name,
-      type
+      type,
     });
 
     if (post) return res.status(201).json({ message: "Post created", post });
-  }else{
+  } else {
+    if (type.trim() !== "") {
+      const post = await POSTMODEL.create({
+        userID,
+        desc,
+        name,
+        type,
+      });
 
-    const post = await POSTMODEL.create({
-      userID,
-      desc,
-      name,
-      type
-    });
-
-    res.status(500).json({ message: "Post created",post });
+      res.status(201).json({ message: "Post created", post });
+    } else {
+      res.status(500).json({ message: "Write something !!", post });
+    }
   }
-
-  
 });
 
 module.exports.singlePost = catchAsyncError(async (req, res, next) => {
@@ -125,8 +126,6 @@ module.exports.likePost = catchAsyncError(async (req, res, next) => {
   }
 });
 
-
-
 module.exports.timeline = catchAsyncError(async (req, res, next) => {
   const userID = req.user._id;
 
@@ -152,7 +151,6 @@ module.exports.timeline = catchAsyncError(async (req, res, next) => {
     },
   ]);
 
-
   const followingPostsArray = followingPosts[0]?.followingPosts || [];
 
   const allPosts = [...posts, ...followingPostsArray].sort(
@@ -161,7 +159,6 @@ module.exports.timeline = catchAsyncError(async (req, res, next) => {
 
   return res.status(200).json(allPosts);
 });
-
 
 module.exports.createComment = catchAsyncError(async (req, res, next) => {
   const postId = req.params.id;
@@ -208,7 +205,6 @@ module.exports.allComments = catchAsyncError(async (req, res, next) => {
 });
 
 module.exports.createReply = catchAsyncError(async (req, res, next) => {
-
   const postId = req.params.id;
 
   const user = req.user;
@@ -221,15 +217,17 @@ module.exports.createReply = catchAsyncError(async (req, res, next) => {
 
   const post = await POSTMODEL.findOne({ _id: postId });
 
- const comment = post.comments.find((comment)=>comment._id.toString() === commentID);
+  const comment = post.comments.find(
+    (comment) => comment._id.toString() === commentID
+  );
 
- comment.reply.push({img:user.profilePic,name:`${user.firstName} ${user.lastName}`,text:text});
+  comment.reply.push({
+    img: user.profilePic,
+    name: `${user.firstName} ${user.lastName}`,
+    text: text,
+  });
 
- await post.save();
+  await post.save();
 
   res.status(201).json({ message: "Reply is posted !!" });
 });
-
-
-
-
