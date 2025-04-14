@@ -35,7 +35,7 @@ module.exports.signup = catchAsyncError(async (req, res, next) => {
       isAdmin,
     });
 
-    const token = jwt.sign({ ...user }, process.env.JWT_SECRET);
+    const token = jwt.sign({ ...user }, process.env.JWT_SECRET,{ expiresIn: "7d" });
 
     if (user) res.status(201).json({ message: "User created", user, token });
   } else {
@@ -47,7 +47,7 @@ module.exports.signup = catchAsyncError(async (req, res, next) => {
       isAdmin,
     });
 
-    const token = jwt.sign({ ...user }, process.env.JWT_SECRET);
+    const token = jwt.sign({ ...user }, process.env.JWT_SECRET,{ expiresIn: "7d" });
 
     if (user) res.status(201).json({ message: "User created", user, token });
   }
@@ -75,7 +75,7 @@ module.exports.login = catchAsyncError(async (req, res, next) => {
       .status(400)
       .json({ errors: [{ msg: "Password is incorrect", path: "password" }] });
 
-  const token = jwt.sign({ ...user }, process.env.JWT_SECRET);
+  const token = jwt.sign({ ...user }, process.env.JWT_SECRET,{ expiresIn: "5s" });
 
   // Send response with token and user data (excluding password)
   const userWithoutPassword = { ...user.toObject(), password: "" };
