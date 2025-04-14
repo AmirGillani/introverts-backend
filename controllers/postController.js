@@ -11,7 +11,7 @@ const USERMODEL = require("../model/userModel");
 const mongoose = require("mongoose");
 
 module.exports.createPost = catchAsyncError(async (req, res, next) => {
-  const { userID, desc, name } = req.body;
+  const { userID, desc, name, type } = req.body;
 
   if (req.file && req.file.path) {
     const post = await POSTMODEL.create({
@@ -19,12 +19,23 @@ module.exports.createPost = catchAsyncError(async (req, res, next) => {
       desc,
       image: req.file.path,
       name,
+      type
     });
 
     if (post) return res.status(201).json({ message: "Post created", post });
+  }else{
+
+    const post = await POSTMODEL.create({
+      userID,
+      desc,
+      name,
+      type
+    });
+
+    res.status(500).json({ message: "Post created",post });
   }
 
-  res.status(500).json({ message: "Post should have an image" });
+  
 });
 
 module.exports.singlePost = catchAsyncError(async (req, res, next) => {
@@ -141,9 +152,6 @@ module.exports.timeline = catchAsyncError(async (req, res, next) => {
     },
   ]);
 
-  console.log(followingPosts);
-
-  console.log("reached");
 
   const followingPostsArray = followingPosts[0]?.followingPosts || [];
 

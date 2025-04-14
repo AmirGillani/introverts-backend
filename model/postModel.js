@@ -19,7 +19,8 @@ const postSchema = new Schema(
     userID: { type: Schema.Types.ObjectId, ref: "User", required: true },
     name: { type: String, required: true, trim: true },
     desc: { type: String, trim: true },
-    image: { type: String, required: true, trim: true },
+    type:{type: String},
+    image: { type: String},
     likes: { type: [Schema.Types.ObjectId], ref: "User", default: [] },
     comments: { type: [commentSchema], default: [] }
   },

@@ -6,8 +6,9 @@ const cloudinary = require('./cloudinary');
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary, // cloudinary instance
   params: {
-    folder: 'introverts', // The Cloudinary folder where the uploaded files will be stored
-    allowed_formats: ['jpg', 'png', 'jpeg', 'gif', 'webp'], // Allowed file formats
+    folder: 'introverts', // The Cloudinary folder where files will be stored
+    resource_type: 'auto', // Let Cloudinary detect type (image/video/etc)
+    allowed_formats: ['jpg', 'png', 'jpeg', 'gif', 'webp', 'mp4', 'mov', 'avi', 'mkv', 'webm'], // Allow videos
   },
 });
 
