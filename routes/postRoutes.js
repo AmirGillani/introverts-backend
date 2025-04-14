@@ -60,7 +60,7 @@ router.get(
   router.put(
     "/editComment/:id",
     check,
-    postController.createComment
+    postController.editComment
   );
 
   router.get(
