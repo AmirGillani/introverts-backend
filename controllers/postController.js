@@ -4,6 +4,8 @@ const HttpsErrors = require("../middleware/utilities/http-errors");
 
 const { validationResult } = require("express-validator");
 
+const { createConnection, sendNotification } = require("../middleware/config/socket-io");
+
 const POSTMODEL = require("../model/postModel");
 
 const USERMODEL = require("../model/userModel");
@@ -127,7 +129,10 @@ module.exports.likePost = catchAsyncError(async (req, res, next) => {
 });
 
 module.exports.timeline = catchAsyncError(async (req, res, next) => {
+
   const userID = req.user._id;
+
+  sendNotification(userID,"Hey how are you !!")
 
   const posts = await POSTMODEL.find({ userID: userID });
 

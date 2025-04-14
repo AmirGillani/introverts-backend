@@ -2,7 +2,7 @@ const express = require("express");
 
 const fs = require("fs");
 
-const path = require("path"); 
+const path = require("path");
 
 const bodyParser = require("body-parser");
 
@@ -16,7 +16,9 @@ const userRouter = require("./routes/userRoutes");
 
 const postRouter = require("./routes/postRoutes");
 
-const startServer = require("./server/createServer");
+const { createConnection } = require("./middleware/config/socket-io");
+
+const startServer = require("./server/createServer")
 
 const dotenv = require("dotenv");
 
@@ -24,26 +26,30 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors({
-  origin: "*", // or specific Netlify domain
-  credentials: true
-}));
+const server = createConnection(app);
+
+app.use(
+  cors({
+    origin: "*", // or specific Netlify domain
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 
-app.use(bodyParser.urlencoded({extended:true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use("/auth", authRouter);
 
 app.use("/users", userRouter);
 
-app.use("/posts",postRouter);
+app.use("/posts", postRouter);
 
-app.use(express.static(path.join(__dirname, 'client/dist')));
+app.use(express.static(path.join(__dirname, "client/dist")));
 
 // Always return index.html for any unknown paths (React Router handles them)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client/dist', 'index.html'));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "client/dist", "index.html"));
 });
 
 // THIS WILL BE CALLED WHEN NO RESPONCE IS ACHIVED FROM ROUTE
@@ -81,4 +87,4 @@ process.on("uncaughtException", (err) => {
   process.exit(1);
 });
 
-startServer(app);
+startServer(server);
