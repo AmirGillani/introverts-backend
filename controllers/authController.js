@@ -75,7 +75,7 @@ module.exports.login = catchAsyncError(async (req, res, next) => {
       .status(400)
       .json({ errors: [{ msg: "Password is incorrect", path: "password" }] });
 
-  const token = jwt.sign({ ...user }, process.env.JWT_SECRET,{ expiresIn: "5s" });
+  const token = jwt.sign({ ...user }, process.env.JWT_SECRET,{ expiresIn: "7d" });
 
   // Send response with token and user data (excluding password)
   const userWithoutPassword = { ...user.toObject(), password: "" };
