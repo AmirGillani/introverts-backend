@@ -24,7 +24,7 @@ module.exports.createPost = catchAsyncError(async (req, res, next) => {
 
     if (post) return res.status(201).json({ message: "Post created", post });
   } else {
-    if (type.trim() !== "") {
+    if (desc.trim() !== "") {
       const post = await POSTMODEL.create({
         userID,
         desc,
