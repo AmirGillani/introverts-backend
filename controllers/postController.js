@@ -209,6 +209,34 @@ module.exports.createComment = catchAsyncError(async (req, res, next) => {
   res.status(201).json({ message: "Comment is posted !!", post: updatedPost });
 });
 
+module.exports.editComment = catchAsyncError(async (req, res, next) => {
+  const postId = req.params.id;
+  const { comment, commentID } = req.body;
+
+  if (!comment || comment.trim() === "") {
+    return res.status(400).json({ message: "Comment cannot be empty." });
+  }
+
+  const post = await POSTMODEL.findById(postId);
+
+  if (!post) {
+    return res.status(404).json({ message: "Post not found." });
+  }
+
+  const foundComment = post.comments.id(commentID); // use mongoose subdoc lookup
+
+  if (!foundComment) {
+    return res.status(404).json({ message: "Comment not found." });
+  }
+
+  foundComment.comment = comment;
+
+  await post.save();
+
+  res.status(200).json({ message: "Comment has been edited!" });
+});
+
+
 module.exports.allComments = catchAsyncError(async (req, res, next) => {
   const postId = req.params.id;
 

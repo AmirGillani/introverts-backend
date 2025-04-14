@@ -57,6 +57,12 @@ router.get(
     postController.createComment
   );
 
+  router.put(
+    "/editComment/:id",
+    check,
+    postController.createComment
+  );
+
   router.get(
     "/allComments/:id",
     check,
