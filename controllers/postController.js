@@ -223,7 +223,7 @@ module.exports.editComment = catchAsyncError(async (req, res, next) => {
     return res.status(404).json({ message: "Post not found." });
   }
 
-  const foundComment = post.comments.find(comment=>comment._id.toString() === commentID); // use mongoose subdoc lookup
+  const foundComment = post.comments.find(comment=>comment._id.toString() === commentID); 
 
   if (!foundComment) {
     return res.status(404).json({ message: "Comment not found." });
@@ -231,11 +231,34 @@ module.exports.editComment = catchAsyncError(async (req, res, next) => {
 
   foundComment.comment = comment;
 
-  foundComment.userID = userID;
-
   await post.save();
 
   res.status(200).json({ message: "Comment has been edited!" });
+});
+
+module.exports.deleteComment = catchAsyncError(async (req, res, next) => {
+  const { postID, commentID } = req.params;
+
+  const post = await POSTMODEL.findById(postID);
+
+  if (!post) {
+    return res.status(404).json({ message: "Post not found." });
+  }
+
+  const originalLength = post.comments.length;
+
+  // Filter out the comment
+  post.comments = post.comments.filter(
+    (comment) => comment._id.toString() !== commentID
+  );
+
+  if (post.comments.length === originalLength) {
+    return res.status(404).json({ message: "Comment not found." });
+  }
+
+  await post.save();
+
+  res.status(200).json({ message: "Comment has been deleted!" });
 });
 
 

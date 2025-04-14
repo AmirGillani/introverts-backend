@@ -63,6 +63,12 @@ router.get(
     postController.editComment
   );
 
+  router.delete(
+    "/deleteComment/:postID/:commentID",
+    check,
+    postController.deleteComment
+  );
+
   router.get(
     "/allComments/:id",
     check,
