@@ -64,6 +64,8 @@ module.exports.singleUserPosts = catchAsyncError(async (req, res, next) => {
   res.status(200).json({ userPosts: userPosts,person:person });
 });
 
+
+
 module.exports.updatePost = catchAsyncError(async (req, res, next) => {
   const id = req.params.id;
 
@@ -297,6 +299,7 @@ module.exports.createReply = catchAsyncError(async (req, res, next) => {
     img: user.profilePic,
     name: `${user.firstName} ${user.lastName}`,
     text: text,
+    userID:user._id
   });
 
   await post.save();

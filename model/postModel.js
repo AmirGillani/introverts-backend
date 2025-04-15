@@ -4,7 +4,8 @@ const { Schema } = mongoose;
 const replySchema = new Schema({
   img: { type: String, trim: true },
   name: { type: String, trim: true, required: true },
-  text: { type: String, trim: true, required: true }
+  text: { type: String, trim: true, required: true },
+  userID:{type: Schema.Types.ObjectId, ref: "User", required: true},
 }, { timestamps: true });
 
 const commentSchema = new Schema({
@@ -12,6 +13,7 @@ const commentSchema = new Schema({
   name: { type: String, trim: true, required: true },
   comment: { type: String, trim: true, required: true },
   userID:{type: Schema.Types.ObjectId, ref: "User", required: true},
+  likes: { type: [Schema.Types.ObjectId], ref: "User", default: [] },
   reply: { type: [replySchema], default: [] }
 }, { timestamps: true });
 
