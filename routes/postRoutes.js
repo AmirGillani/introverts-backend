@@ -63,10 +63,22 @@ router.get(
     postController.editComment
   );
 
+  router.put(
+    "/editReply/:id",
+    check,
+    postController.editReply
+  );
+
   router.delete(
     "/deleteComment/:postID/:commentID",
     check,
     postController.deleteComment
+  );
+
+  router.delete(
+    "/deleteReply/:postID/:commentID/:replyID",
+    check,
+    postController.deleteReply
   );
 
   router.get(

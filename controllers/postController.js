@@ -238,6 +238,48 @@ module.exports.editComment = catchAsyncError(async (req, res, next) => {
   res.status(200).json({ message: "Comment has been edited!" });
 });
 
+module.exports.editReply = catchAsyncError(async (req, res, next) => {
+  const postId = req.params.id;
+  const { reply, commentID, userID, replyID } = req.body;
+
+  if (!reply || reply.trim() === "") {
+    return res.status(400).json({ message: "Reply cannot be empty." });
+  }
+
+  const post = await POSTMODEL.findById(postId);
+
+  if (!post) {
+    return res.status(404).json({ message: "Post not found." });
+  }
+
+  const foundComment = post.comments.find(
+    (comment) => comment._id.toString() === commentID
+  );
+
+  
+
+  if (!foundComment) {
+    return res.status(404).json({ message: "Comment not found." });
+  }
+
+  let foundReply = foundComment.reply.find(
+    (r) => r._id.toString() === replyID
+  );
+
+  if (!foundReply) {
+    return res.status(404).json({ message: "Reply not found." });
+  }
+
+  // Update the reply
+  foundReply.text = reply;
+  foundReply.userID = userID; // Optional — only if needed
+
+  await post.save();
+
+  res.status(200).json({ message: "Reply has been edited!" });
+});
+
+
 module.exports.deleteComment = catchAsyncError(async (req, res, next) => {
   const { postID, commentID } = req.params;
 
@@ -257,6 +299,29 @@ module.exports.deleteComment = catchAsyncError(async (req, res, next) => {
   if (post.comments.length === originalLength) {
     return res.status(404).json({ message: "Comment not found." });
   }
+
+  await post.save();
+
+  res.status(200).json({ message: "Comment has been deleted!" });
+});
+
+module.exports.deleteReply = catchAsyncError(async (req, res, next) => {
+  const { postID, commentID,replyID } = req.params;
+
+  const post = await POSTMODEL.findById(postID);
+
+  if (!post) {
+    return res.status(404).json({ message: "Post not found." });
+  }
+
+  // Filter out the comment
+  const comment = post.comments.find(
+    (comment) => comment._id.toString() === commentID
+  );
+
+  comment.reply = comment.reply.filter(
+    (reply) => reply._id.toString() !== replyID
+  );
 
   await post.save();
 
