@@ -279,6 +279,74 @@ module.exports.editReply = catchAsyncError(async (req, res, next) => {
   res.status(200).json({ message: "Reply has been edited!" });
 });
 
+module.exports.searchPostsByDescription = async (req, res) => {
+  try {
+    const keyword = req.query.q;
+
+    if (!keyword || keyword.trim() === "") {
+      return res.status(400).json({ message: "Search keyword is required." });
+    }
+
+
+    const results = await POSTMODEL.find({ desc: { $regex: keyword, $options: "i" } });
+
+
+    res.status(200).json({ results });
+  } catch (error) {
+    console.error("Search Error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+module.exports.trendingHashtags = async (req, res) => {
+  try {
+    const results = await POSTMODEL.aggregate([
+      {
+        // Match only posts with a description containing '#'
+        $match: {
+          desc: { $regex: /#/, $options: "i" },
+        },
+      },
+      {
+        // Extract hashtags from the desc string
+        $project: {
+          hashtags: {
+            $map: {
+              input: {
+                $filter: {
+                  input: { $split: ["$desc", " "] },
+                  as: "word",
+                  cond: { $regexMatch: { input: "$$word", regex: /^#\w+/ } },
+                },
+              },
+              as: "tag",
+              in: {
+                $toLower: "$$tag", // normalize case
+              },
+            },
+          },
+        },
+      },
+      { $unwind: "$hashtags" }, // Flatten hashtags array
+      {
+        $group: {
+          _id: "$hashtags",
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { count: -1 } }, // Sort descending
+      { $limit: 10 }, // Top 10 trending hashtags
+    ]);
+
+    res.status(200).json({ trending: results });
+  } catch (error) {
+    console.error("Hashtag aggregation error:", error);
+    res.status(500).json({ message: "Failed to get trending hashtags" });
+  }
+};
+
+
+
 
 module.exports.deleteComment = catchAsyncError(async (req, res, next) => {
   const { postID, commentID } = req.params;

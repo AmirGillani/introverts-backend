@@ -51,6 +51,11 @@ router.get(
     postController.timeline
   );
 
+  router.get(
+    "/hashtags",
+    postController.trendingHashtags
+  );
+
   router.put(
     "/sendComment/:id",
     check,
@@ -68,6 +73,8 @@ router.get(
     check,
     postController.editReply
   );
+
+  router.get("/search", postController.searchPostsByDescription);
 
   router.delete(
     "/deleteComment/:postID/:commentID",
