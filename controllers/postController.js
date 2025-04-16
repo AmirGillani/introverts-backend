@@ -335,7 +335,7 @@ module.exports.trendingHashtags = async (req, res) => {
         },
       },
       { $sort: { count: -1 } }, // Sort descending
-      { $limit: 10 }, // Top 10 trending hashtags
+      { $limit: 8 }, // Top 10 trending hashtags
     ]);
 
     res.status(200).json({ trending: results });
