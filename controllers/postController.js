@@ -112,11 +112,11 @@ module.exports.updatePost = catchAsyncError(async (req, res, next) => {
 module.exports.deletePost = catchAsyncError(async (req, res, next) => {
   const id = req.params.id;
 
-  const { userID } = req.body;
+  const post = await POSTMODEL.findById(id);
 
   // CHECK IF USER IS AUTHENTICATED OR NOT IF YES THEN IT CHECKS EITHER IT IS ADMIN OR IT IS ITS OWN POST
 
-  if (!req.user || (req.user._id !== userID && !req.user.isAdmin)) {
+  if (req.user._id.toString() !== post.userID.toString()) {
     return res.status(403).json({ message: "It's not your post" });
   }
 
