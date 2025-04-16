@@ -69,11 +69,15 @@ module.exports.singleUserPosts = catchAsyncError(async (req, res, next) => {
 module.exports.updatePost = catchAsyncError(async (req, res, next) => {
   const id = req.params.id;
 
-  const { userID, likes, desc } = req.body;
+  const { desc,type } = req.body;
+
+  let post = await POSTMODEL.findById(id);
+
+  if(!post) return res.status(404).json({message:"Post not found !!!"});
 
   // CHECK IF USER IS AUTHENTICATED OR NOT IF YES THEN IT CHECKS EITHER IT IS ADMIN OR IT IS ITS OWN POST
 
-  if (!req.user || (req.user._id !== userID && !req.user.isAdmin)) {
+  if (!req.user || (req.user._id.toString() !== post.userID.toString())) {
     return res.status(403).json({ message: "It's not your post" });
   }
 
@@ -82,8 +86,8 @@ module.exports.updatePost = catchAsyncError(async (req, res, next) => {
       id,
       {
         $set: {
-          likes,
           desc,
+          type,
           image: req.file.path,
         },
       },
@@ -97,8 +101,7 @@ module.exports.updatePost = catchAsyncError(async (req, res, next) => {
       id,
       {
         $set: {
-          likes,
-          desc,
+          desc
         },
       },
       { new: true }
@@ -113,6 +116,8 @@ module.exports.deletePost = catchAsyncError(async (req, res, next) => {
   const id = req.params.id;
 
   const post = await POSTMODEL.findById(id);
+
+  if(!post) return res.status(404).json({message:"Post not found !!"});
 
   // CHECK IF USER IS AUTHENTICATED OR NOT IF YES THEN IT CHECKS EITHER IT IS ADMIN OR IT IS ITS OWN POST
 
@@ -131,6 +136,8 @@ module.exports.likePost = catchAsyncError(async (req, res, next) => {
   const userID = req.user._id;
 
   const post = await POSTMODEL.findById(id);
+
+  if(!post) return res.status(404).json({message:"Post not found !!"});
 
   if (!post.likes.includes(userID)) {
     await POSTMODEL.updateOne({ _id: id }, { $push: { likes: userID } });
@@ -187,6 +194,10 @@ module.exports.createComment = catchAsyncError(async (req, res, next) => {
 
   const { comment,userID } = req.body;
 
+  const post = await POSTMODEL.findById(postId);
+
+  if(!post) return res.status(404).json({message:"Post not found !!"});
+
   if (!comment || comment.trim() === "") {
     return res.status(400).json({ message: "Comment cannot be empty." });
   }
@@ -214,6 +225,7 @@ module.exports.createComment = catchAsyncError(async (req, res, next) => {
 module.exports.editComment = catchAsyncError(async (req, res, next) => {
   const postId = req.params.id;
   const { comment, commentID,userID } = req.body;
+
 
   if (!comment || comment.trim() === "") {
     return res.status(400).json({ message: "Comment cannot be empty." });
