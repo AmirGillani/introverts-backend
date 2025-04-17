@@ -26,6 +26,7 @@ const userSchema = new Schema(
       required:true,
       default: [],
     },
+    fcmToken:{type: String,default:""}
   },
   { timestamps: true }
 );

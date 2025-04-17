@@ -4,7 +4,7 @@ const HttpsErrors = require("../middleware/utilities/http-errors");
 
 const { validationResult } = require("express-validator");
 
-const { sendNotification } = require("../middleware/config/socket-io");
+const admin = require('firebase-admin');
 
 const POSTMODEL = require("../model/postModel");
 
@@ -52,32 +52,29 @@ module.exports.singlePost = catchAsyncError(async (req, res, next) => {
 });
 
 module.exports.singleUserPosts = catchAsyncError(async (req, res, next) => {
-
   const id = req.params.id;
 
   const person = await USERMODEL.findById(id);
 
   if (!person) return res.status(404).json({ message: "Person not found" });
 
-  const userPosts = await POSTMODEL.find({userID:id});
+  const userPosts = await POSTMODEL.find({ userID: id });
 
-  res.status(200).json({ userPosts: userPosts,person:person });
+  res.status(200).json({ userPosts: userPosts, person: person });
 });
-
-
 
 module.exports.updatePost = catchAsyncError(async (req, res, next) => {
   const id = req.params.id;
 
-  const { desc,type } = req.body;
+  const { desc, type } = req.body;
 
   let post = await POSTMODEL.findById(id);
 
-  if(!post) return res.status(404).json({message:"Post not found !!!"});
+  if (!post) return res.status(404).json({ message: "Post not found !!!" });
 
   // CHECK IF USER IS AUTHENTICATED OR NOT IF YES THEN IT CHECKS EITHER IT IS ADMIN OR IT IS ITS OWN POST
 
-  if (!req.user || (req.user._id.toString() !== post.userID.toString())) {
+  if (!req.user || req.user._id.toString() !== post.userID.toString()) {
     return res.status(403).json({ message: "It's not your post" });
   }
 
@@ -101,7 +98,7 @@ module.exports.updatePost = catchAsyncError(async (req, res, next) => {
       id,
       {
         $set: {
-          desc
+          desc,
         },
       },
       { new: true }
@@ -117,7 +114,7 @@ module.exports.deletePost = catchAsyncError(async (req, res, next) => {
 
   const post = await POSTMODEL.findById(id);
 
-  if(!post) return res.status(404).json({message:"Post not found !!"});
+  if (!post) return res.status(404).json({ message: "Post not found !!" });
 
   // CHECK IF USER IS AUTHENTICATED OR NOT IF YES THEN IT CHECKS EITHER IT IS ADMIN OR IT IS ITS OWN POST
 
@@ -137,10 +134,21 @@ module.exports.likePost = catchAsyncError(async (req, res, next) => {
 
   const post = await POSTMODEL.findById(id);
 
-  if(!post) return res.status(404).json({message:"Post not found !!"});
+  if (!post) return res.status(404).json({ message: "Post not found !!" });
 
   if (!post.likes.includes(userID)) {
+
     await POSTMODEL.updateOne({ _id: id }, { $push: { likes: userID } });
+
+    // FIND THE PERSON WHOSE POST IS BEING LIKED
+
+    const userID = post.userID;
+
+    const user = USERMODEL.findById(userID);
+
+    // CHECK IF THIS USER HAS REGISTERED FCM TOKEN IF YES THEN SEND NOTIFICATION
+
+    if(user.fcmToken && user.fcmToken.trim() !== 0) sendNotification("INTROVERTS",`${user.username} HAS LIKED YOUR POST`,user.fcmToken);
 
     return res.status(200).json({ message: "Post liked successfully!!" });
   } else {
@@ -151,10 +159,7 @@ module.exports.likePost = catchAsyncError(async (req, res, next) => {
 });
 
 module.exports.timeline = catchAsyncError(async (req, res, next) => {
-
   const userID = req.user._id;
-
-  sendNotification(userID,"Hey how are you !!")
 
   const posts = await POSTMODEL.find({ userID: userID });
 
@@ -192,11 +197,11 @@ module.exports.createComment = catchAsyncError(async (req, res, next) => {
 
   const user = req.user;
 
-  const { comment,userID } = req.body;
+  const { comment, userID } = req.body;
 
   const post = await POSTMODEL.findById(postId);
 
-  if(!post) return res.status(404).json({message:"Post not found !!"});
+  if (!post) return res.status(404).json({ message: "Post not found !!" });
 
   if (!comment || comment.trim() === "") {
     return res.status(400).json({ message: "Comment cannot be empty." });
@@ -210,7 +215,7 @@ module.exports.createComment = catchAsyncError(async (req, res, next) => {
           imgUrl: user.profilePic,
           name: `${user.firstName} ${user.lastName}`,
           comment: comment,
-          userID:userID
+          userID: userID,
         },
       },
     },
@@ -224,8 +229,7 @@ module.exports.createComment = catchAsyncError(async (req, res, next) => {
 
 module.exports.editComment = catchAsyncError(async (req, res, next) => {
   const postId = req.params.id;
-  const { comment, commentID,userID } = req.body;
-
+  const { comment, commentID, userID } = req.body;
 
   if (!comment || comment.trim() === "") {
     return res.status(400).json({ message: "Comment cannot be empty." });
@@ -237,7 +241,9 @@ module.exports.editComment = catchAsyncError(async (req, res, next) => {
     return res.status(404).json({ message: "Post not found." });
   }
 
-  const foundComment = post.comments.find(comment=>comment._id.toString() === commentID); 
+  const foundComment = post.comments.find(
+    (comment) => comment._id.toString() === commentID
+  );
 
   if (!foundComment) {
     return res.status(404).json({ message: "Comment not found." });
@@ -268,15 +274,11 @@ module.exports.editReply = catchAsyncError(async (req, res, next) => {
     (comment) => comment._id.toString() === commentID
   );
 
-  
-
   if (!foundComment) {
     return res.status(404).json({ message: "Comment not found." });
   }
 
-  let foundReply = foundComment.reply.find(
-    (r) => r._id.toString() === replyID
-  );
+  let foundReply = foundComment.reply.find((r) => r._id.toString() === replyID);
 
   if (!foundReply) {
     return res.status(404).json({ message: "Reply not found." });
@@ -299,9 +301,9 @@ module.exports.searchPostsByDescription = async (req, res) => {
       return res.status(400).json({ message: "Search keyword is required." });
     }
 
-
-    const results = await POSTMODEL.find({ desc: { $regex: keyword, $options: "i" } });
-
+    const results = await POSTMODEL.find({
+      desc: { $regex: keyword, $options: "i" },
+    });
 
     res.status(200).json({ results });
   } catch (error) {
@@ -357,9 +359,6 @@ module.exports.trendingHashtags = async (req, res) => {
   }
 };
 
-
-
-
 module.exports.deleteComment = catchAsyncError(async (req, res, next) => {
   const { postID, commentID } = req.params;
 
@@ -386,7 +385,7 @@ module.exports.deleteComment = catchAsyncError(async (req, res, next) => {
 });
 
 module.exports.deleteReply = catchAsyncError(async (req, res, next) => {
-  const { postID, commentID,replyID } = req.params;
+  const { postID, commentID, replyID } = req.params;
 
   const post = await POSTMODEL.findById(postID);
 
@@ -407,7 +406,6 @@ module.exports.deleteReply = catchAsyncError(async (req, res, next) => {
 
   res.status(200).json({ message: "Comment has been deleted!" });
 });
-
 
 module.exports.allComments = catchAsyncError(async (req, res, next) => {
   const postId = req.params.id;
@@ -444,10 +442,26 @@ module.exports.createReply = catchAsyncError(async (req, res, next) => {
     img: user.profilePic,
     name: `${user.firstName} ${user.lastName}`,
     text: text,
-    userID:user._id
+    userID: user._id,
   });
 
   await post.save();
 
   res.status(201).json({ message: "Reply is posted !!" });
+});
+
+const sendNotification = catchAsyncError(async (title, message, token) => {
+  const notification = {
+    notification: {
+      title: title,
+      body: message,
+    },
+    token: token,
+  };
+
+  try {
+    await admin.messaging().send(notification);
+  } catch (error) {
+    console.error("Error sending notification:", error);
+  }
 });

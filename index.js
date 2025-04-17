@@ -16,6 +16,8 @@ const userRouter = require("./routes/userRoutes");
 
 const postRouter = require("./routes/postRoutes");
 
+const notificationRouter = require("./routes/notificationRoutes");
+
 const { createConnection } = require("./middleware/config/socket-io");
 
 const startServer = require("./server/createServer")
@@ -24,9 +26,19 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
+const firebaseAdmin = require('firebase-admin');
+
+// Initialize Firebase Admin SDK with the downloaded service account key
+const serviceAccount = require('./middleware/database/service-key');
+
+firebaseAdmin.initializeApp({
+  credential: firebaseAdmin.credential.cert(serviceAccount)
+});
+
 const app = express();
 
 const server = createConnection(app);
+
 
 app.use(
   cors({
@@ -34,6 +46,8 @@ app.use(
     credentials: true,
   })
 );
+
+
 
 app.use(express.json());
 
@@ -44,6 +58,8 @@ app.use("/auth", authRouter);
 app.use("/users", userRouter);
 
 app.use("/posts", postRouter);
+
+app.use("/notifications", notificationRouter);
 
 app.use(express.static(path.join(__dirname, "client/dist")));
 
