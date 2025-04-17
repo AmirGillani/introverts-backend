@@ -142,13 +142,13 @@ module.exports.likePost = catchAsyncError(async (req, res, next) => {
 
     // FIND THE PERSON WHOSE POST IS BEING LIKED
 
-    const userID = post.userID;
+    // const userID = post.userID;
 
-    const user = USERMODEL.findById(userID);
+    // const user = USERMODEL.findById(userID);
 
     // CHECK IF THIS USER HAS REGISTERED FCM TOKEN IF YES THEN SEND NOTIFICATION
 
-    if(user.fcmToken && user.fcmToken.trim() !== 0) sendNotification("INTROVERTS",`${user.username} HAS LIKED YOUR POST`,user.fcmToken);
+    // if(user.fcmToken && user.fcmToken.trim() !== 0) sendNotification("INTROVERTS",`${user.username} HAS LIKED YOUR POST`,user.fcmToken);
 
     return res.status(200).json({ message: "Post liked successfully!!" });
   } else {
@@ -450,18 +450,18 @@ module.exports.createReply = catchAsyncError(async (req, res, next) => {
   res.status(201).json({ message: "Reply is posted !!" });
 });
 
-const sendNotification = catchAsyncError(async (title, message, token) => {
-  const notification = {
-    notification: {
-      title: title,
-      body: message,
-    },
-    token: token,
-  };
+// const sendNotification = catchAsyncError(async (title, message, token) => {
+//   const notification = {
+//     notification: {
+//       title: title,
+//       body: message,
+//     },
+//     token: token,
+//   };
 
-  try {
-    await admin.messaging().send(notification);
-  } catch (error) {
-    console.error("Error sending notification:", error);
-  }
-});
+//   try {
+//     await admin.messaging().send(notification);
+//   } catch (error) {
+//     console.error("Error sending notification:", error);
+//   }
+// });

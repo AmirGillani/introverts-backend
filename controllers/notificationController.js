@@ -36,7 +36,7 @@ module.exports.sendNotification = catchAsyncError(async (req, res, next) => {
   
     try {
       // Send the message to multiple tokens using sendToDevice
-      const response = await admin.messaging().send(message);
+    //   const response = await admin.messaging().send(message);
       
       res.status(200).send(`Successfully sent message`);
     } catch (error) {

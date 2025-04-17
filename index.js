@@ -29,11 +29,11 @@ dotenv.config();
 const firebaseAdmin = require('firebase-admin');
 
 // Initialize Firebase Admin SDK with the downloaded service account key
-const serviceAccount = require('./middleware/database/service-key');
+// const serviceAccount = require('./middleware/database/service-key');
 
-firebaseAdmin.initializeApp({
-  credential: firebaseAdmin.credential.cert(serviceAccount)
-});
+// firebaseAdmin.initializeApp({
+//   credential: firebaseAdmin.credential.cert(serviceAccount)
+// });
 
 const app = express();
 
