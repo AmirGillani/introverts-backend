@@ -1,11 +1,5 @@
 const catchAsyncError = require("../middleware/utilities/catch-async-errors");
 
-const HttpsErrors = require("../middleware/utilities/http-errors");
-
-const { validationResult } = require("express-validator");
-
-const admin = require('firebase-admin');
-
 const POSTMODEL = require("../model/postModel");
 
 const USERMODEL = require("../model/userModel");
@@ -140,16 +134,6 @@ module.exports.likePost = catchAsyncError(async (req, res, next) => {
 
     await POSTMODEL.updateOne({ _id: id }, { $push: { likes: userID } });
 
-    // FIND THE PERSON WHOSE POST IS BEING LIKED
-
-    // const userID = post.userID;
-
-    // const user = USERMODEL.findById(userID);
-
-    // CHECK IF THIS USER HAS REGISTERED FCM TOKEN IF YES THEN SEND NOTIFICATION
-
-    // if(user.fcmToken && user.fcmToken.trim() !== 0) sendNotification("INTROVERTS",`${user.username} HAS LIKED YOUR POST`,user.fcmToken);
-
     return res.status(200).json({ message: "Post liked successfully!!" });
   } else {
     await POSTMODEL.updateOne({ _id: id }, { $pull: { likes: userID } });
@@ -169,7 +153,7 @@ module.exports.timeline = catchAsyncError(async (req, res, next) => {
     },
     {
       $lookup: {
-        from: "posts", // must match the actual collection name
+        from: "posts", 
         localField: "following",
         foreignField: "userID",
         as: "followingPosts",
@@ -450,18 +434,4 @@ module.exports.createReply = catchAsyncError(async (req, res, next) => {
   res.status(201).json({ message: "Reply is posted !!" });
 });
 
-// const sendNotification = catchAsyncError(async (title, message, token) => {
-//   const notification = {
-//     notification: {
-//       title: title,
-//       body: message,
-//     },
-//     token: token,
-//   };
 
-//   try {
-//     await admin.messaging().send(notification);
-//   } catch (error) {
-//     console.error("Error sending notification:", error);
-//   }
-// });
