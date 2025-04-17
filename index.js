@@ -16,8 +16,6 @@ const userRouter = require("./routes/userRoutes");
 
 const postRouter = require("./routes/postRoutes");
 
-const { createConnection } = require("./middleware/config/socket-io");
-
 const startServer = require("./server/createServer");
 
 const dotenv = require("dotenv");
@@ -25,8 +23,6 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const app = express();
-
-const server = createConnection(app);
 
 app.use(
   cors({
@@ -87,4 +83,4 @@ process.on("uncaughtException", (err) => {
   process.exit(1);
 });
 
-startServer(server);
+startServer(app);
