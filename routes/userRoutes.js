@@ -18,6 +18,8 @@ router.put("/follow/:id",check, userController.followUser);
 
 router.put("/unfollow/:id",check, userController.unfollowUser);
 
+router.put("/fetchFollowers", userController.fetchFollowers);
+
 router.put(
   "/updateUser/:id",check,
   upload.fields([

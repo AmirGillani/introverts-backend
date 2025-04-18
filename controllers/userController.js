@@ -176,3 +176,29 @@ module.exports.unfollowUser = catchAsyncError(async (req, res, next) => {
   res.status(200).json({ message: "User un followed successfully !!",user:user });
 });
 
+module.exports.fetchFollowers = catchAsyncError(async (req, res, next) => {
+
+
+  const {text,id}  = req.body;
+
+
+  if(text === "followers"){
+    const { followers } = await userModel
+    .findById(id)
+    .select('followers')
+    .populate('followers', 'firstName lastName username profilePic');
+
+    res.status(200).json({followers});
+
+  }else if(text === "following")
+  {
+    const { following } = await userModel
+    .findById(id)
+    .select('following')
+    .populate('following', 'firstName lastName username profilePic');
+
+    res.status(200).json({followers:following});
+  }
+
+});
+
