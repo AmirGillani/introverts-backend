@@ -136,7 +136,9 @@ module.exports.followUser = catchAsyncError(async (req, res, next) => {
     $push: { following: syedaID },
   });
 
-  res.status(200).json({ message: "User followed successfully!" });
+  const user = await userModel.findById(req.user._id);
+
+  res.status(200).json({ message: "User followed successfully!",user:user });
 });
 
 
@@ -169,6 +171,8 @@ module.exports.unfollowUser = catchAsyncError(async (req, res, next) => {
 
   await userModel.findByIdAndUpdate(zeeID, { $pull: { following: syedaID } });
 
-  res.status(200).json({ message: "User un followed successfully !!" });
+  const user = await userModel.findById(req.user._id);
+
+  res.status(200).json({ message: "User un followed successfully !!",user:user });
 });
 
