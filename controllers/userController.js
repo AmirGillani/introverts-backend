@@ -179,7 +179,7 @@ module.exports.unfollowUser = catchAsyncError(async (req, res, next) => {
 module.exports.fetchFollowers = catchAsyncError(async (req, res, next) => {
 
 
-  const {text,id}  = req.body;
+  const {text,id,postID}  = req.body;
 
 
   if(text === "followers"){
@@ -198,6 +198,16 @@ module.exports.fetchFollowers = catchAsyncError(async (req, res, next) => {
     .populate('following', 'firstName lastName username profilePic');
 
     res.status(200).json({followers:following});
+  }else{
+    if(postID)
+    {
+      const { likes } = await postModel
+    .findById(postID)
+    .select('likes')
+    .populate('likes', 'firstName lastName username profilePic');
+
+    res.status(200).json({followers:likes});
+    }
   }
 
 });
